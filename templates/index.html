@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Martial Arts Verify</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar / Navigation -->
+        <nav class="sidebar">
+            <div class="logo">
+                <i class="fa-solid fa-bolt"></i>
+                <span>Martial Arts</span>
+            </div>
+
+            <div class="menu">
+                <div class="menu-label">Navigation</div>
+                <a href="/history_page" class="nav-btn" style="text-decoration: none;">
+                    <i class="fa-solid fa-clock-rotate-left"></i> Full History
+                </a>
+
+                <div class="menu-label">Movements</div>
+                <button class="nav-btn active" onclick="setMovement('Sikap Siap')" id="btn-sikap">
+                    Sikap Siap
+                    <span class="badge" id="ref-count-sikap">0 Refs</span>
+                </button>
+                <button class="nav-btn" onclick="setMovement('Pukulan Dasar')" id="btn-pukulan">
+                    Pukulan Dasar
+                    <span class="badge" id="ref-count-pukulan">0 Refs</span>
+                </button>
+
+                <div class="menu-label">Mode</div>
+                <div class="mode-switch">
+                    <button class="mode-btn active" onclick="setMode('webcam')"><i class="fa-solid fa-video"></i>
+                        Live</button>
+                    <button class="mode-btn" onclick="setMode('image')"><i class="fa-solid fa-image"></i>
+                        Upload</button>
+                </div>
+            </div>
+
+            <div class="history-panel">
+                <div class="panel-header">
+                    <h3>Recent History</h3>
+                    <button onclick="clearHistory()" class="icon-btn"><i class="fa-solid fa-trash"></i></button>
+                </div>
+                <div id="history-list" class="history-list">
+                    <!-- History Items -->
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+
+            <!-- Setup / Reference Upload -->
+            <section class="setup-bar">
+                <div class="status-card">
+                    <span class="label">Current Movement (Webcam)</span>
+                    <h2 id="current-mov-display">Sikap Siap</h2>
+                </div>
+                <div class="upload-control">
+                    <label for="ref-input" class="upload-btn">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Upload References
+                    </label>
+                    <input type="file" id="ref-input" multiple accept="image/*" onchange="uploadReferences()">
+                    <span id="upload-status"></span>
+                </div>
+            </section>
+
+            <!-- Reference Manager -->
+            <section class="reference-manager" id="ref-manager-area">
+                <h3>Saved References (<span id="ref-total-count">0</span>)</h3>
+                <div class="ref-grid" id="ref-grid">
+                    <!-- Populated by JS -->
+                </div>
+            </section>
+
+            <!-- Verification Area -->
+            <section class="verification-stage" id="webcam-view">
+                <div class="video-wrapper">
+                    <img src="{{ url_for('video_feed') }}" alt="Live Feed" class="live-feed">
+                    <div class="overlay-info">
+                        <div class="detection-labels">
+                            <div class="det-item">
+                                <span class="det-label">Sikap Siap:</span>
+                                <span class="det-score" id="score-sikap">0.00</span>
+                            </div>
+                            <div class="det-item">
+                                <span class="det-label">Pukulan Dasar:</span>
+                                <span class="det-score" id="score-pukulan">0.00</span>
+                            </div>
+                        </div>
+                        <div class="detected-badge" id="detected-mov-badge">Detecting...</div>
+
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" id="verify-progress"></div>
+                        </div>
+                        <div class="status-overlay-row">
+                            <div class="status-badge" id="live-status">Waiting...</div>
+                            <button class="instant-btn" onclick="verifyInstant()">
+                                <i class="fa-solid fa-bolt"></i> Verify Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="verification-stage hidden" id="image-view">
+                <div class="image-tester">
+                    <!-- Manual Select for Image Test -->
+                    <div class="image-controls">
+                        <label>Test Against:</label>
+                        <select id="image-test-movement">
+                            <option value="Sikap Siap">Sikap Siap</option>
+                            <option value="Pukulan Dasar">Pukulan Dasar</option>
+                        </select>
+                    </div>
+
+                    <div class="drop-zone" id="drop-zone">
+                        <i class="fa-solid fa-image"></i>
+                        <p>Drag & Drop Test Image or Click</p>
+                        <input type="file" id="test-input" accept="image/*" hidden>
+                    </div>
+
+                    <div class="result-preview hidden" id="preview-area">
+                        <img id="upload-preview-img" src="" alt="Preview">
+                        <div class="result-overlay">
+                            <button id="verify-photo-btn" onclick="runStaticVerification()" class="instant-btn"
+                                style="margin-bottom: 10px;">
+                                <i class="fa-solid fa-magnifying-glass"></i> Run Verification
+                            </button>
+                            <button onclick="resetImageTest()" class="retry-btn"><i
+                                    class="fa-solid fa-rotate-right"></i> Choose Different</button>
+                        </div>
+                    </div>
+
+                    <div class="result-preview hidden" id="result-preview-container">
+                        <div class="comparison-view-static" id="side-by-side-area">
+                            <!-- JS will inject images here -->
+                        </div>
+                        <div class="result-overlay">
+                            <span id="static-result-text"></span>
+                            <button onclick="resetImageTest()" class="retry-btn"><i
+                                    class="fa-solid fa-rotate-right"></i> Try Again</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Enhanced Image Modal -->
+    <div id="image-modal" class="modal" onclick="closeModal()">
+        <span class="close-modal">&times;</span>
+        <div class="modal-compare-container" id="modal-compare-area" onclick="event.stopPropagation()"
+            style="display: none;">
+            <div class="compare-pane">
+                <span class="pane-label">Result</span>
+                <img id="modal-result-img" src="" alt="Result">
+            </div>
+            <div class="compare-pane">
+                <span class="pane-label">Reference</span>
+                <img id="modal-ref-img" src="" alt="Reference">
+            </div>
+        </div>
+        <img class="modal-content" id="modal-single-img" style="display: block;">
+        <div id="modal-caption" class="caption"></div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+
+</html>
