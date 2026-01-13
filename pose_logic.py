@@ -1,9 +1,23 @@
 from ultralytics import YOLO
 import cv2
 import numpy as np
+import json
+import os
 
 # Load model once
 model = YOLO("yolov8n-pose.pt")
+
+CONFIG_FILE = "config.json"
+
+def load_config_threshold():
+    if os.path.exists(CONFIG_FILE):
+        try:
+            with open(CONFIG_FILE, 'r') as f:
+                config = json.load(f)
+                return config.get('threshold', 0.95)
+        except Exception:
+            return 0.95
+    return 0.95
 
 def extract_keypoints(image):
     """
@@ -99,10 +113,13 @@ def get_skeleton_and_embedding(frame):
     
     return annotated_frame, None, None
 
-def check_pose_direct(live_embedding, reference_embeddings, threshold=0.85):
+def check_pose_direct(live_embedding, reference_embeddings, threshold=None):
     """
     Compare a pre-calculated embedding against references.
     """
+    if threshold is None:
+        threshold = load_config_threshold()
+        
     if live_embedding is None or not reference_embeddings:
         return False, 0.0, -1
         
@@ -118,7 +135,9 @@ def check_pose_direct(live_embedding, reference_embeddings, threshold=0.85):
     return is_match, max_sim, best_match_idx
 
 # Legacy support for check_pose (calls new efficient methods)
-def check_pose(frame, reference_embeddings, threshold=0.85):
+def check_pose(frame, reference_embeddings, threshold=None):
+    if threshold is None:
+        threshold = load_config_threshold()
     ann, emb, _ = get_skeleton_and_embedding(frame)
     is_match, score, idx = check_pose_direct(emb, reference_embeddings, threshold)
     return is_match, score, ann, idx

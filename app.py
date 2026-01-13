@@ -115,7 +115,7 @@ def generate_frames():
         target_ref_files = state['ref_filenames'].get(target_mov, [])
         
         # Re-check for target with the same embedding but with threshold and best index
-        is_match, score, best_idx = pose_logic.check_pose_direct(live_embedding, target_refs, threshold=0.90)
+        is_match, score, best_idx = pose_logic.check_pose_direct(live_embedding, target_refs, threshold=None)
         
         # Competitive check: Target must also be the best match
         is_match = is_match and (detected_mov == target_mov)
@@ -299,7 +299,7 @@ def verify_image():
                 'image_url': f"/static/uploads/{res_filename}"
             })
 
-        is_match, score, best_idx = pose_logic.check_pose_direct(embedding, refs, threshold=0.90)
+        is_match, score, best_idx = pose_logic.check_pose_direct(embedding, refs, threshold=None)
         
         # Save result image
         res_filename = f"result_{int(time.time())}.jpg"
@@ -339,7 +339,7 @@ def verify_instant():
         if embedding is None:
             return jsonify({'match': False, 'score': 0.0, 'error': 'No person detected'})
 
-        is_match, score, best_idx = pose_logic.check_pose_direct(embedding, refs, threshold=0.90)
+        is_match, score, best_idx = pose_logic.check_pose_direct(embedding, refs, threshold=None)
         
         # Save result image
         res_filename = f"instant_{int(time.time())}.jpg"
