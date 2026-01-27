@@ -377,11 +377,11 @@ function startStatusPolling() {
                 // Update detection info
                 document.getElementById('detected-mov-badge').innerText = data.detected;
                 document.getElementById('score-sikap').innerText = data.scores['Sikap Siap'].toFixed(2);
-                document.getElementById('score-pukulan').innerText = data.scores['Pukulan Dasar'].toFixed(2);
+                document.getElementById('score-pukulan').innerText = data.scores['Serangan Dasar'].toFixed(2);
 
                 // Update ref counts
                 document.getElementById('ref-count-sikap').innerText = `${data.ref_counts['Sikap Siap']} Refs`;
-                document.getElementById('ref-count-pukulan').innerText = `${data.ref_counts['Pukulan Dasar']} Refs`;
+                document.getElementById('ref-count-pukulan').innerText = `${data.ref_counts['Serangan Dasar']} Refs`;
 
                 if (data.verified) {
                     document.getElementById('live-status').style.color = 'var(--success)';

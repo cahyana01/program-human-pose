@@ -21,15 +21,15 @@ state = {
     'detected_movement': 'None',
     'scores': {
         'Sikap Siap': 0.0,
-        'Pukulan Dasar': 0.0
+        'Serangan Dasar': 0.0
     },
     'references': {
         'Sikap Siap': [],
-        'Pukulan Dasar': []
+        'Serangan Dasar': []
     },
     'ref_filenames': {
         'Sikap Siap': [],
-        'Pukulan Dasar': []
+        'Serangan Dasar': []
     },
     'verification': {
         'start_time': None,
@@ -44,7 +44,7 @@ camera = None
 
 def load_references_from_db():
     print("Loading references from DB...")
-    for mov in ['Sikap Siap', 'Pukulan Dasar']:
+    for mov in ['Sikap Siap', 'Serangan Dasar']:
         refs = database.get_references(mov)
         embeddings = []
         filenames = []
@@ -60,7 +60,7 @@ def load_references_from_db():
                         filenames.append(ref['filepath_annotated'])
         state['references'][mov] = embeddings
         state['ref_filenames'][mov] = filenames
-    print(f"Loaded {len(state['references']['Sikap Siap'])} Sikap Siap, {len(state['references']['Pukulan Dasar'])} Pukulan Dasar")
+    print(f"Loaded {len(state['references']['Sikap Siap'])} Sikap Siap, {len(state['references']['Serangan Dasar'])} Pukulan Dasar")
 
 # Initialize references on startup
 load_references_from_db()
@@ -92,7 +92,7 @@ def generate_frames():
         
         # Check all movements for classification using the same live_embedding
         scores_map = {}
-        for mov_name in ['Sikap Siap', 'Pukulan Dasar']:
+        for mov_name in ['Sikap Siap', 'Serangan Dasar']:
             refs = state['references'].get(mov_name, [])
             # Use the optimized direct check
             _, score, _ = pose_logic.check_pose_direct(live_embedding, refs, threshold=0.0)
@@ -186,7 +186,7 @@ def get_status():
         'verified': state['verification']['verified'],
         'ref_counts': {
             'Sikap Siap': len(state['references']['Sikap Siap']),
-            'Pukulan Dasar': len(state['references']['Pukulan Dasar'])
+            'Serangan Dasar': len(state['references']['Serangan Dasar'])
         }
     })
 

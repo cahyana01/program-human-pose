@@ -1,0 +1,68 @@
+================================================================================
+ALUR DAN ALGORITMA PROGRAM VERIFIKASI GERAKAN BELADIRI
+================================================================================
+
+Proyek ini adalah sistem berbasis web yang dirancang untuk memverifikasi keakuratan 
+gerakan beladiri (Sikap Siap dan Serangan Dasar) secara real-time menggunakan 
+Artificial Intelligence (Computer Vision).
+
+--------------------------------------------------------------------------------
+1. ALUR KERJA UTAMA (WORKFLOW)
+--------------------------------------------------------------------------------
+A. Pengambilan Video (Input):
+   - Program mengakses kamera (webcam) menggunakan OpenCV.
+   - Frame video diambil secara terus-menerus dan dikirim ke backend Flask.
+
+B. Deteksi Pose (Inference):
+   - Setiap frame diproses menggunakan Model YOLOv8-pose (Pose Estimation).
+   - Algoritma mendeteksi 17 titik kunci tubuh (keypoints) seperti bahu, 
+     sikut, pergelangan tangan, pinggul, lutut, dan mata kaki.
+
+C. Normalisasi Data:
+   - Titik kunci yang dideteksi dinormalisasi agar hasil verifikasi tidak 
+     terpengaruh oleh jarak pengguna dari kamera atau posisi tubuh di layar.
+   - Algoritma menghitung pusat massa (tengah bahu dan pinggul) dan menskalakan 
+     seluruh titik berdasarkan panjang batang tubuh (torso).
+
+D. Perbandingan Kemiripan (Similarity Check):
+   - Fitur pose yang telah dinormalisasi dibandingkan dengan gambar referensi 
+     yang telah diunggah sebelumnya.
+   - Digunakan algoritma Cosine Similarity untuk menghitung seberapa mirip 
+     vektor pose saat ini dengan vektor pose referensi.
+
+E. Verifikasi (Verification Logic):
+   - Jika skor kemiripan berada di atas ambang batas (threshold), timer dimulai.
+   - Pengguna harus mempertahankan posisi tersebut secara akurat.
+   - Jika posisi ditahan selama 5 detik berturut-turut, gerakan dianggap "VERIFIED".
+
+F. Penyimpanan Riwayat:
+   - Hasil verifikasi beserta gambar bukti dan skor akurasi disimpan ke dalam 
+     database SQLite untuk dianalisis di halaman Riwayat.
+
+--------------------------------------------------------------------------------
+2. ALGORITMA YANG DIGUNAKAN
+--------------------------------------------------------------------------------
+A. YOLOv8-Pose (Ultralytics):
+   - Digunakan untuk ekstraksi keypoints secara cepat dan akurat pada CPU/GPU.
+   
+B. Normalisasi Koordinat:
+   - Mengubah koordinat piksel absolut menjadi koordinat relatif berbasis torso.
+   - Rumus: P_norm = (P - Center) / Torso_Length.
+   
+C. Cosine Similarity:
+   - Digunakan untuk membandingkan dua vektor fitur pose.
+   - Hasilnya berupa nilai antara 0.0 (tidak mirip) hingga 1.0 (sangat identik).
+   
+D. Ambang Batas (Confidence Threshold):
+   - Sistem menggunakan batas kepercayaan (default: 95%) yang dapat diatur 
+     melalui program pengaturan terpisah (settings.py).
+
+--------------------------------------------------------------------------------
+3. TEKNOLOGI YANG DIGUNAKAN
+--------------------------------------------------------------------------------
+- Bahasa Pemrograman: Python 3.x
+- Web Framework: Flask (Backend) & Vanilla JS/CSS (Frontend)
+- Computer Vision: OpenCV & Ultralytics (YOLOv8)
+- Database: SQLite3
+- GUI Pengaturan: Tkinter
+================================================================================
