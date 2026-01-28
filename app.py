@@ -60,15 +60,28 @@ def load_references_from_db():
                         filenames.append(ref['filepath_annotated'])
         state['references'][mov] = embeddings
         state['ref_filenames'][mov] = filenames
-    print(f"Loaded {len(state['references']['Sikap Siap'])} Sikap Siap, {len(state['references']['Serangan Dasar'])} Pukulan Dasar")
+    print(f"Loaded {len(state['references']['Sikap Siap'])} Sikap Siap, {len(state['references']['Serangan Dasar'])} Serangan Dasar")
 
 # Initialize references on startup
 load_references_from_db()
 
 def get_camera():
     global camera
-    if camera is None:
-        camera = cv2.VideoCapture(0)
+    if camera is None or not camera.isOpened():
+        # Try indices 0, 1, 2
+        for idx in range(3):
+            print(f"Trying to open camera index {idx}...")
+            cap = cv2.VideoCapture(idx)
+            if cap.isOpened():
+                ret, frame = cap.read()
+                if ret:
+                    print(f"Camera found at index {idx}")
+                    camera = cap
+                    return camera
+                else:
+                    cap.release()
+        print("Error: No working camera found on indices 0-2.")
+        return None
     return camera
 
 def generate_frames():
@@ -76,9 +89,24 @@ def generate_frames():
     
     while True:
         cam = get_camera()
+        if cam is None:
+            # Yield a blank frame or error image if no camera found
+            # Create a black image with error text
+            blank_image = np.zeros((480, 640, 3), np.uint8)
+            cv2.putText(blank_image, "CAMERA NOT FOUND", (150, 240), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+            ret, buffer = cv2.imencode('.jpg', blank_image)
+            frame = buffer.tobytes()
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+            time.sleep(2) # Wait before retrying
+            continue
+
         success, frame = cam.read()
         if not success:
-            break
+            print("Failed to read frame. Releasing camera.")
+            cam.release()
+            camera = None # Force re-discovery
+            continue
             
         # Resize for performance
         frame = cv2.resize(frame, (640, 480))
